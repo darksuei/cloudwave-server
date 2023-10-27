@@ -35,5 +35,5 @@
     "nodemon": "^3.0.1",
     "supertest": "^6.3.3"
   },
-  "repository": "https://github.com/Suei43/CloudWave"
+  "repository": "https://github.com/darksuei/cloudwave-server"
 }
