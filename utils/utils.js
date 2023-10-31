@@ -72,7 +72,7 @@ const linkHash = async (data) => {
   const cipher = crypto.createCipheriv(
     "aes-256-cbc",
     Buffer.from(encryptionKey),
-    Buffer.from(iv, "hex"),
+    Buffer.from(iv, "hex")
   );
   let encryptedData = cipher.update(data, "utf-8", "hex");
   encryptedData += cipher.final("hex");
@@ -85,7 +85,7 @@ const deLinkHash = async (encryptedData) => {
   const decipher = crypto.createDecipheriv(
     "aes-256-cbc",
     Buffer.from(encryptionKey),
-    Buffer.from(iv, "hex"),
+    Buffer.from(iv, "hex")
   );
   let decryptedData = decipher.update(encryptedData, "hex", "utf-8");
   decryptedData += decipher.final("utf-8");

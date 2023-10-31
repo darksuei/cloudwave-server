@@ -124,7 +124,6 @@ const getAllFiles = async (req, res, next) => {
           });
         }
       }
-      console.log(files);
     } else {
       return res.status(404).json({ message: "User not found" });
     }
@@ -174,6 +173,7 @@ const uploadFile = async (req, res, next) => {
       if (userFile) {
         return res.status(409).json({ message: "File already exists" });
       }
+      console.log("Uploading...");
 
       let status = await uploadToStorage(file.originalname, file.path, folder);
       if (!status)
