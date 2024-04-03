@@ -46,6 +46,7 @@ const getStorageFilesinDetail = async (folder) => {
 };
 
 const uploadToStorage = (name, filepath, folder) => {
+  console.log("in");
   let imagePath;
   if (filepath) {
     imagePath = path.join(__dirname, filepath.slice(6));
@@ -72,21 +73,15 @@ const uploadToStorage = (name, filepath, folder) => {
 };
 
 const shareFile = async () => {
-  const file = Object.values(storage.files).find(
-    (file) => file.name === "image.jpg",
-  );
+  const file = Object.values(storage.files).find((file) => file.name === "image.jpg");
   const link = await file.link();
   file ? console.log(link) : console.log("File not found");
 };
 
 const deleteFile = async () => {
-  const file = Object.values(storage.files).find(
-    (file) => file.name === "image.jpg",
-  );
+  const file = Object.values(storage.files).find((file) => file.name === "image.jpg");
   file ? file.delete() : console.log("File not found");
 };
-
-const handleStorage = async () => {};
 
 module.exports = {
   createStorage,

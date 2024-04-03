@@ -1,10 +1,6 @@
 const { storage, loginToStorage } = require("../utils/loginToStorage");
 
-const {
-  uploadToStorage,
-  getStorageFiles,
-  getStorageFilesinDetail,
-} = require("../utils/Storage");
+const { uploadToStorage, getStorageFiles, getStorageFilesinDetail } = require("../utils/Storage");
 
 const {
   formatDateLabel,
@@ -14,13 +10,9 @@ const {
   deLinkHash,
 } = require("../utils/utils");
 
-const errorMiddleware = require("../middleware/errorMiddleware");
-
 require("dotenv").config();
 
 const User = require("../models/userSchema");
-
-const { File } = require("megajs");
 
 const getCategoryCount = async (req, res, next) => {
   try {
@@ -61,9 +53,7 @@ const getFilesByCategory = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.user.email });
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === req.user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === req.user.email);
     const filelist = await getStorageFiles(folder);
     if (!filelist) return res.status(404).json({ message: "No files found" });
 
@@ -71,9 +61,7 @@ const getFilesByCategory = async (req, res, next) => {
     for (let i = 0; i < filelist.length; i++) {
       if (user) {
         const fileItem = user.files.find(
-          (file) =>
-            file.name === filelist[i] &&
-            getCategoryFromFileName(file.name) === req.params.name
+          (file) => file.name === filelist[i] && getCategoryFromFileName(file.name) === req.params.name
         );
         if (fileItem) {
           const time = fileItem.date;
@@ -96,9 +84,7 @@ const getFilesByCategory = async (req, res, next) => {
 const getAllFiles = async (req, res, next) => {
   try {
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === req.user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === req.user.email);
 
     const filelist = await getStorageFiles(folder);
     if (!filelist) return res.status(404).json({ message: "No files found" });
@@ -157,9 +143,7 @@ const uploadFile = async (req, res, next) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === req.user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === req.user.email);
     for (const file of req.files) {
       if (user.spaceUsed + file.size / 1024 > 3 * 1024 * 1024) {
         return res.status(400).json({
@@ -167,30 +151,21 @@ const uploadFile = async (req, res, next) => {
           error: "Storage limit Exceeded",
         });
       }
-      const userFile = await user.files.find(
-        (existingFile) => existingFile.name === file.originalname
-      );
+      const userFile = await user.files.find((existingFile) => existingFile.name === file.originalname);
       if (userFile) {
         return res.status(409).json({ message: "File already exists" });
       }
       console.log("Uploading...");
 
       let status = await uploadToStorage(file.originalname, file.path, folder);
-      if (!status)
-        return res.status(400).json({ message: "Error uploading file" });
+      if (!status) return res.status(400).json({ message: "Error uploading file" });
 
-      if (status)
-        res.status(201).json({ message: "Files uploaded successfully" });
+      if (status) res.status(201).json({ message: "Files uploaded successfully" });
       try {
-        const link =
-          process.env.CLIENT_URL +
-          "/preview/" +
-          (await linkHash(file.originalname));
+        const link = process.env.CLIENT_URL + "/preview/" + (await linkHash(file.originalname));
 
         const autoDownloadLink =
-          process.env.SERVER_URL +
-          "/api/downloadfile/" +
-          (await linkHash(file.originalname));
+          process.env.SERVER_URL + "/api/downloadfile/" + (await linkHash(file.originalname));
 
         const data = await status.downloadBuffer();
 
@@ -276,9 +251,7 @@ const getStorage = async (req, res) => {
 const deleteFile = async (req, res, next) => {
   try {
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === req.user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === req.user.email);
     const filelist = await getStorageFilesinDetail(folder);
 
     const fileToDelete = filelist.find((file) => file.name === req.params.name);
@@ -290,10 +263,7 @@ const deleteFile = async (req, res, next) => {
     const file = user.files.find((file) => file.name === req.params.name);
     if (!file) return res.status(404).json({ message: "File not found" });
 
-    await User.findOneAndUpdate(
-      { email: req.user.email },
-      { $inc: { spaceUsed: -file.size } }
-    );
+    await User.findOneAndUpdate({ email: req.user.email }, { $inc: { spaceUsed: -file.size } });
     user.files.pull(file);
     await user.save();
     return res.status(200).json({ message: "File deleted successfully" });
@@ -340,12 +310,9 @@ const toggleFav = async (req, res, next) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const fileToUpdate = user.files.find(
-      (file) => file.name === req.params.name
-    );
+    const fileToUpdate = user.files.find((file) => file.name === req.params.name);
 
-    if (!fileToUpdate)
-      return res.status(404).json({ message: "File not found" });
+    if (!fileToUpdate) return res.status(404).json({ message: "File not found" });
 
     const newIsFavoriteValue = !fileToUpdate.isFavorite;
 
@@ -366,9 +333,7 @@ const toggleFav = async (req, res, next) => {
 const renameFile = async (req, res, next) => {
   try {
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === req.user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === req.user.email);
     const filelist = await getStorageFilesinDetail(folder);
     const file = filelist.find((file) => file.name === req.params.name);
     file.rename(req.body.newName);
@@ -384,8 +349,7 @@ const renameFile = async (req, res, next) => {
     };
 
     const user = await User.findOneAndUpdate(filter, update, { new: true });
-    if (!user)
-      return res.status(404).json({ message: "User or file not found" });
+    if (!user) return res.status(404).json({ message: "User or file not found" });
 
     return res.status(200).json({ message: "Success" });
   } catch (error) {
@@ -397,15 +361,11 @@ const getImage = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.user.email }).select("-__v");
     if (!user) return res.status(404).json({ message: "User not found" });
-    const filename = await user.files.find(
-      (file) => file.name == req.params.name
-    );
+    const filename = await user.files.find((file) => file.name == req.params.name);
     if (!filename) return res.status(404).json({ message: "File not found." });
 
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === req.user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === req.user.email);
     const filelist = await getStorageFilesinDetail(folder);
 
     const fileToSend = filelist.find((file) => file.name === req.params.name);
@@ -430,9 +390,7 @@ const getFileFromCrypt = async (req, res, next) => {
     const decryptedFileName = await deLinkHash(filehash);
     const user = await User.findOne({ "files.name": decryptedFileName });
     if (!user) return res.status(404).json({ message: "User not found" });
-    const file = await user.files.find(
-      (file) => file.name == decryptedFileName
-    );
+    const file = await user.files.find((file) => file.name == decryptedFileName);
     if (!file) return res.status(404).json({ message: "File not found." });
     file.time = formatDateLabel(file.date);
     res.status(200).json({ message: "Success", file });
@@ -450,15 +408,11 @@ const getFileFromCryptAndDownload = async (req, res, next) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     //Get the file from db
-    const file = await user.files.find(
-      (file) => file.name == decryptedFileName
-    );
+    const file = await user.files.find((file) => file.name == decryptedFileName);
 
     //Get the file from storage
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === user.email);
 
     const filelist = await getStorageFilesinDetail(folder);
 
@@ -492,15 +446,9 @@ const uploadAvatar = async (req, res, next) => {
     const user = await User.findOne({ email: req.user.email });
     if (!user) return res.status(404).json({ message: "User not found" });
     await loginToStorage();
-    const folder = storage.root.children.find(
-      (folder) => folder.name === req.user.email
-    );
+    const folder = storage.root.children.find((folder) => folder.name === req.user.email);
     for (const file of req.files) {
-      const status = await uploadToStorage(
-        file.originalname + "_avatar",
-        file.path,
-        folder
-      );
+      const status = await uploadToStorage(file.originalname + "_avatar", file.path, folder);
       if (!status) {
         return res.status(400).json({ message: "Error uploading Avatar" });
       }
@@ -519,8 +467,7 @@ const uploadAvatar = async (req, res, next) => {
         .catch((error) => {
           console.error("Error updating user");
         });
-      if (status)
-        res.status(201).json({ message: "Files uploaded successfully" });
+      if (status) res.status(201).json({ message: "Files uploaded successfully" });
     }
   } catch (err) {
     next(err);
