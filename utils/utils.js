@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-require("dotenv").config();
+const bcrypt = require("bcrypt");
 
 const formatDateLabel = (date) => {
   const currentDate = new Date();
@@ -68,28 +68,40 @@ const getCategoryIcon = (category) => {
 
 const linkHash = async (data) => {
   const encryptionKey = process.env.ENCRYPTION_KEY;
+
   const iv = process.env.IV;
-  const cipher = crypto.createCipheriv(
-    "aes-256-cbc",
-    Buffer.from(encryptionKey),
-    Buffer.from(iv, "hex")
-  );
+
+  const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(encryptionKey), Buffer.from(iv, "hex"));
+
   let encryptedData = cipher.update(data, "utf-8", "hex");
+
   encryptedData += cipher.final("hex");
+
   return encryptedData;
 };
 
 const deLinkHash = async (encryptedData) => {
   const encryptionKey = process.env.ENCRYPTION_KEY;
+
   const iv = process.env.IV;
-  const decipher = crypto.createDecipheriv(
-    "aes-256-cbc",
-    Buffer.from(encryptionKey),
-    Buffer.from(iv, "hex")
-  );
+
+  const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(encryptionKey), Buffer.from(iv, "hex"));
+
   let decryptedData = decipher.update(encryptedData, "hex", "utf-8");
+
   decryptedData += decipher.final("utf-8");
+
   return decryptedData;
+};
+
+const hashPassword = async (password, saltRounds) => {
+  return await bcrypt.hash(password, saltRounds);
+};
+
+const generateToken = (email) => {
+  return jwt.sign({ email: email }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
 };
 
 module.exports = {
@@ -98,4 +110,6 @@ module.exports = {
   getCategoryIcon,
   linkHash,
   deLinkHash,
+  hashPassword,
+  generateToken,
 };

@@ -1,64 +1,52 @@
-const Router = require("express").Router;
+const authenticate = require("../middlewares/authenticate");
+const getSearchFiles = require("../controllers/fileControllers/getSearchFiles");
+const getAllFiles = require("../controllers/fileControllers/getAllFiles");
+const getFilesByCategory = require("../controllers/fileControllers/getFilesByCategory");
+const getCategoryCount = require("../controllers/fileControllers/getCategoryCount");
+const postUploadFile = require("../controllers/fileControllers/postUploadFile");
+const deleteFile = require("../controllers/fileControllers/deleteFile");
+const patchRenameFile = require("../controllers/fileControllers/patchRenameFile");
+const getSingleFile = require("../controllers/fileControllers/getSingleFile");
+const getFavs = require("../controllers/fileControllers/getFavs");
+const patchToggleFav = require("../controllers/fileControllers/patchToggleFav");
+const getStorage = require("../controllers/fileControllers/getStorage");
+const getImage = require("../controllers/fileControllers/getImage");
+const getFileFromCrypt = require("../controllers/fileControllers/getFileFromCrypt");
+const getFileFromCryptAndDownload = require("../controllers/fileControllers/getFileFromCryptAndDownload");
+const postUploadAvatar = require("../controllers/fileControllers/postUploadAvatar");
 
-const {
-  getCategoryCount,
-  getAllFiles,
-  getFilesByCategory,
-  getStorage,
-  searchFiles,
-  uploadFile,
-  deleteFile,
-  renameFile,
-  getSingleFile,
-  getFavs,
-  getImage,
-  toggleFav,
-  getFileFromCrypt,
-  getFileFromCryptAndDownload,
-  uploadAvatar,
-} = require("../controllers/filesController");
+const router = require("express").Router();
 
-const filesRouter = Router();
+const upload = require("multer")({ dest: "services/public" });
 
-const multer = require("multer");
+router.get("/search", authenticate, getSearchFiles);
 
-const upload = multer({ dest: "utils/public" });
+router.get("/files", authenticate, getAllFiles);
 
-const { authenticate } = require("../utils/authenticate");
+router.get("/files/:name", authenticate, getFilesByCategory);
 
-filesRouter.get("/search", authenticate, searchFiles);
+router.get("/file/count", authenticate, getCategoryCount);
 
-filesRouter.get("/files", authenticate, getAllFiles);
+router.post("/upload", authenticate, upload.array("files"), postUploadFile);
 
-filesRouter.get("/files/:name", authenticate, getFilesByCategory);
+router.delete("/delete/:name", authenticate, deleteFile);
 
-filesRouter.get("/file/count", authenticate, getCategoryCount);
+router.patch("/rename/:name", authenticate, patchRenameFile);
 
-filesRouter.post("/upload", authenticate, upload.array("files"), uploadFile);
+router.get("/getfile/:name", authenticate, getSingleFile);
 
-filesRouter.delete("/delete/:name", authenticate, deleteFile);
+router.get("/favorites", authenticate, getFavs);
 
-filesRouter.patch("/rename/:name", authenticate, renameFile);
+router.patch("/updatefav/:name", authenticate, patchToggleFav);
 
-filesRouter.get("/getfile/:name", authenticate, getSingleFile);
+router.get("/storage", authenticate, getStorage);
 
-filesRouter.get("/favorites", authenticate, getFavs);
+router.get("/image/:name", authenticate, getImage);
 
-filesRouter.patch("/updatefav/:name", authenticate, toggleFav);
+router.get("/decryptfile/:hash", getFileFromCrypt);
 
-filesRouter.get("/storage", authenticate, getStorage);
+router.get("/downloadfile/:hash", getFileFromCryptAndDownload);
 
-filesRouter.get("/image/:name", authenticate, getImage);
+router.post("/uploadavatar", authenticate, upload.array("files"), postUploadAvatar);
 
-filesRouter.get("/decryptfile/:hash", getFileFromCrypt);
-
-filesRouter.get("/downloadfile/:hash", getFileFromCryptAndDownload);
-
-filesRouter.post(
-  "/uploadavatar",
-  authenticate,
-  upload.array("files"),
-  uploadAvatar
-);
-
-module.exports = filesRouter;
+module.exports = router;

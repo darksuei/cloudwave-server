@@ -1,31 +1,26 @@
-const Router = require("express").Router;
+const getUser = require("../controllers/userControllers/getUser");
+const patchUpdateUser = require("../controllers/userControllers/patchUpdateUser");
+const postForgotPassword = require("../controllers/userControllers/postForgotPassword");
+const postResetPassword = require("../controllers/userControllers/postResetPassword");
+const postUserGoogleLogin = require("../controllers/userControllers/postUserGoogleLogin");
+const postUserLogin = require("../controllers/userControllers/postUserLogin");
+const postUserRegister = require("../controllers/userControllers/postUserRegister");
+const authenticate = require("../middlewares/authenticate");
 
-const userRouter = Router();
+const router = require("express").Router();
 
-const {
-  userLogin,
-  userRegister,
-  userUpdate,
-  getUser,
-  userGoogleLogin,
-  forgotPassword,
-  resetPassword,
-} = require("../controllers/userController");
+router.post("/newuser", postUserRegister);
 
-const { authenticate } = require("../utils/authenticate");
+router.post("/login", postUserLogin);
 
-userRouter.get("/user", authenticate, getUser);
+router.post("/google_login", postUserGoogleLogin);
 
-userRouter.post("/login", userLogin);
+router.post("/forgot_password", postForgotPassword);
 
-userRouter.post("/forgot_password", forgotPassword);
+router.post("/reset_password/:_id/:token", postResetPassword);
 
-userRouter.post("/reset_password/:_id/:token", resetPassword);
+router.get("/user", authenticate, getUser);
 
-userRouter.post("/newuser", userRegister);
+router.patch("/update", authenticate, patchUpdateUser);
 
-userRouter.post("/google_login", userGoogleLogin);
-
-userRouter.patch("/update", authenticate, userUpdate);
-
-module.exports = userRouter;
+module.exports = router;
